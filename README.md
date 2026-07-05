@@ -150,3 +150,7 @@ The MCP Server (7 tools) is connected to all four agents.
 
 ### Cover Banner
 ![PR Gatekeeper Cover Banner](assets/cover_page_banner.png)
+
+## Demo Script
+
+See [DEMO_SCRIPT.txt](DEMO_SCRIPT.txt) for a full spoken walkthrough (~3–4 minutes) covering the architecture, live demo of all 3 test cases, and a closing impact statement.

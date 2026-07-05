@@ -1,0 +1,18 @@
+import os
+from dataclasses import dataclass
+from dotenv import load_dotenv
+
+load_dotenv()
+os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "False")  # Gemini API key only
+
+@dataclass
+class AgentConfig:
+    # Reads model from environment GEMINI_MODEL. Defaults to gemini-3.5-flash.
+    # Fall back to gemini-2.5-flash-lite if you hit 503 high-demand errors.
+    model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+    mcp_server_port: int = 8090
+    max_iterations: int = 3
+    pii_redaction_enabled: bool = True
+    injection_detection_enabled: bool = True
+
+config = AgentConfig()

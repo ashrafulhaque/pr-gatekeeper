@@ -14,6 +14,10 @@
 
 import logging
 
+import os
+os.environ["INTEGRATION_TEST"] = "TRUE"
+os.environ["GOOGLE_CLOUD_PROJECT"] = "mock-project"
+
 import pytest
 from google.adk.events.event import Event
 

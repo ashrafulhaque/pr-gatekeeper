@@ -300,7 +300,9 @@ wf = Workflow(
     ]
 )
 
+root_agent = wf
+
 app = App(
-    root_agent=wf,
+    root_agent=root_agent,
     name="app",
 )

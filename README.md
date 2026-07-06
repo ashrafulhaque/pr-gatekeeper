@@ -2,7 +2,7 @@
 
 PR Gatekeeper is a production-grade, multi-agent automated code review system built to audit pull requests for security vulnerabilities, exposed secrets, and quality standards *before* human review. By acting as a checkpoint in the CI/CD pipeline, it dynamically decides whether a PR is safe to merge (`AUTO_COMMENT`) or should be blocked (`BLOCK_MERGE`).
 
-Developed with **Google's Agent Development Kit (ADK)** and powered by **Gemini 2.5 Flash / Pro**, this system demonstrates advanced multi-agent orchestration, parallel task execution, and custom **Model Context Protocol (MCP)** tool integration for devops and security automation.
+Developed with **Google's Agent Development Kit (ADK)** and powered by **gemini-3.1-flash-lite / Pro**, this system demonstrates advanced multi-agent orchestration, parallel task execution, and custom **Model Context Protocol (MCP)** tool integration for devops and security automation.
 
 ---
 

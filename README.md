@@ -1,68 +1,91 @@
-# PR Gatekeeper
+# PR Gatekeeper: AI-Powered Automated PR Auditor & DevOps Guardian
 
-Automated CI reviewer that audits PRs for secrets, missing auth, and security vulnerabilities to decide between `AUTO_COMMENT` and `BLOCK_MERGE`.
+PR Gatekeeper is a production-grade, multi-agent automated code review system built to audit pull requests for security vulnerabilities, exposed secrets, and quality standards *before* human review. By acting as a checkpoint in the CI/CD pipeline, it dynamically decides whether a PR is safe to merge (`AUTO_COMMENT`) or should be blocked (`BLOCK_MERGE`).
 
-## Prerequisites
+Developed with **Google's Agent Development Kit (ADK)** and powered by **Gemini 2.5 Flash / Pro**, this system demonstrates advanced multi-agent orchestration, parallel task execution, and custom **Model Context Protocol (MCP)** tool integration for devops and security automation.
 
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) Python package manager
-- Gemini API Key from [Google AI Studio](https://aistudio.google.com/apikey)
+---
 
-## Quick Start
+## 🚀 Key Features
 
-1. Clone this repository and navigate to the project directory:
-   ```bash
-   git clone <repo-url>
-   cd pr-gatekeeper
-   ```
-2. Copy `.env.example` to `.env` and fill in your Gemini API key:
-   ```bash
-   cp .env.example .env
-   ```
-3. Install dependencies:
-   ```bash
-   make install
-   ```
-4. Start the interactive playground:
-   ```bash
-   make playground
-   ```
-   Open http://localhost:18081 in your browser to interact with the UI.
+- **Multi-Agent Orchestration:** Coordinated execution of four specialized agents (`ContextAgent`, `SecurityAgent`, `QualityAgent`, and `ReviewComposerAgent`) managing complex state and parallel execution trees.
+- **Automated Secrets Detection:** Uses automated MCP-connected scanners like Semgrep to detect hardcoded credentials, API keys, and sensitive configuration exposure in real-time.
+- **Software Composition Analysis (SCA):** Automatically checks dependencies for vulnerability flags at the PR boundary.
+- **Context-Aware Quality Audits:** Understands repository-wide conventions, missing authentication checks, error handling, and test-coverage requirements by fetching surrounding sibling files.
+- **Pipeline Checkpoints:** Deterministic gatekeeping logic that translates security findings into branch-protection policies (`BLOCK_MERGE` or `AUTO_COMMENT`).
+- **Interactive UI Playground:** Powered by the ADK local runtime to visualize agent decisions, execution flows, and real-time logs.
 
-## Architecture
+---
+
+## 🛠️ Tech Stack & Architecture
+
+### Technology Stack
+- **Orchestration:** Google Agent Development Kit (ADK)
+- **LLM Engine:** Gemini API (via `google-genai` SDK)
+- **Integration Layer:** Model Context Protocol (MCP) Server with 7 custom tools
+- **Security Scanners:** Semgrep, Custom Dependency Audit Tools
+- **Environment:** Python 3.11+, `uv` (Fast Package Manager), Make
+
+### Architecture Workflow
+The system uses a parallel audit pipeline where findings are aggregated before hitting a deterministic checkpoint:
 
 ```mermaid
 graph TD
-    START[START] --> ContextAgent
-    ContextAgent --> SecurityAgent
-    ContextAgent --> QualityAgent
-    SecurityAgent --> join_audits[JoinNode]
-    QualityAgent --> join_audits
-    join_audits --> security_checkpoint{Security Checkpoint}
-    security_checkpoint -->|severity=CRITICAL| composer_phase[ReviewComposerAgent]
-    security_checkpoint -->|severity=WARNING/INFO| composer_phase
-    composer_phase --> MCP[MCP Server Tools]
+    START[Trigger PR Audit] --> ContextAgent[ContextAgent: Gathers diff & repository context]
+    ContextAgent --> SecurityAgent[SecurityAgent: Scans secrets & vulnerable packages]
+    ContextAgent --> QualityAgent[QualityAgent: Audits conventions & patterns]
+    SecurityAgent --> JoinNode[Join Node: Aggregates findings]
+    QualityAgent --> JoinNode
+    JoinNode --> Checkpoint{Security Checkpoint}
+    Checkpoint -->|CRITICAL Severity| BlockMerge[Route: BLOCK_MERGE]
+    Checkpoint -->|WARNING/INFO Only| AutoComment[Route: AUTO_COMMENT]
+    BlockMerge --> Composer[ReviewComposerAgent: Formats markdown report & updates GitHub status]
+    AutoComment --> Composer
 ```
 
-## How to Run
+---
 
-- **Interactive UI Testing**:
-  ```bash
-  make playground
-  ```
-- **Local Web Server**:
-  ```bash
-  make run
-  ```
-- **Unit & Integration Tests**:
-  ```bash
-  make test
-  ```
+## 📦 Getting Started
 
-## Sample Test Cases
+### Prerequisites
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (Astral Python Package Manager)
+- A Gemini API Key (obtainable via [Google AI Studio](https://aistudio.google.com/))
 
-### Test Case 1: Clean PR (Expected: AUTO_COMMENT)
-- **Input**:
+### Installation & Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd pr-gatekeeper
+   ```
+
+2. **Configure environment variables:**
+   Copy the template environment file and insert your `GOOGLE_API_KEY`:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   make install
+   ```
+
+4. **Launch the local runner & playground:**
+   Start the interactive ADK visualization dashboard:
+   ```bash
+   make playground
+   ```
+   *Navigate to [http://localhost:18081](http://localhost:18081) to run live testing scenarios.*
+
+---
+
+## 🧪 Simulation Scenario Test Cases
+
+You can run these payload scenarios inside the local ADK playground to test system routes:
+
+### Scenario 1: Safe PR (`AUTO_COMMENT`)
+- **Payload:**
   ```json
   {
     "pr_number": 1,
@@ -71,11 +94,10 @@ graph TD
     "head_sha": "head123"
   }
   ```
-- **Expected**: `ContextAgent` loads mock clean files. No critical issues are found. Deterministic checkpoint routes to `AUTO_COMMENT`. `ReviewComposerAgent` writes a clean review comment.
-- **Check**: Look for the posted review showing an `AUTO_COMMENT` decision and check run status in UI logs.
+- **Behavior:** The agent scans clean mock files, finds no critical flags, passes the security gate, and posts a positive, informative review comment.
 
-### Test Case 2: Hardcoded Secret (Expected: BLOCK_MERGE)
-- **Input**:
+### Scenario 2: Exposed Secrets (`BLOCK_MERGE`)
+- **Payload:**
   ```json
   {
     "pr_number": 2,
@@ -84,11 +106,10 @@ graph TD
     "head_sha": "head123"
   }
   ```
-- **Expected**: `run_semgrep` tool detects a hardcoded API key in `config/settings.py`. Checkpoint flags `CRITICAL` severity and routes to `BLOCK_MERGE`.
-- **Check**: Review shows `BLOCK_MERGE` with the flagged secret in the table.
+- **Behavior:** The `SecurityAgent` triggers Semgrep, catches an active API key in `config/settings.py`, flags it as a `CRITICAL` vulnerability, and blocks the merge.
 
-### Test Case 3: Missing Auth (Expected: BLOCK_MERGE)
-- **Input**:
+### Scenario 3: Logical Vulnerability - Missing Authentication (`BLOCK_MERGE`)
+- **Payload:**
   ```json
   {
     "pr_number": 3,
@@ -97,56 +118,32 @@ graph TD
     "head_sha": "head123"
   }
   ```
-- **Expected**: `ContextAgent` fetches route files. `SecurityAgent` identifies that a new POST route handler in `src/routes/users.py` lacks session verification while sibling routes have one. Checkpoint flags `CRITICAL` and routes to `BLOCK_MERGE`.
-- **Check**: Review identifies the insecure route handler.
+- **Behavior:** The `QualityAgent` analyzes the new endpoint alongside surrounding files, detects missing authentication wrappers compared to repo conventions, and triggers a safety block.
 
-## Troubleshooting
+---
 
-1. **`AttributeError: 'State' object has no attribute 'pr_number'`**:
-   - Make sure you are using dictionary subscription (e.g. `ctx.state["pr_number"]`) since ADK's state object does not support dot-notation attribute access.
-2. **`403 PERMISSION_DENIED`**:
-   - Ensure your `GOOGLE_API_KEY` in `.env` is updated and valid.
-3. **`Session not found`**:
-   - Verify that the App name in `App(name="app")` matches the folder name `app` exactly.
+## ⚡ Deployment & CI/CD Integration
 
-## Push to GitHub
+To run PR Gatekeeper headlessly in your GitHub Actions pipeline:
 
-1. Create a new repo at https://github.com/new
-   - Name: pr-gatekeeper
-   - Visibility: Public or Private
-   - Do NOT initialize with README (you already have one)
+```bash
+uv run python -m app.cli_runner
+```
 
-2. In your terminal, navigate into your project folder:
-   ```bash
-   cd pr-gatekeeper
-   ```
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit: pr-gatekeeper ADK agent"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/pr-gatekeeper.git
-   git push -u origin main
-   ```
+Ensure the following environment variables are supplied by your GitHub workflow:
+- `GOOGLE_API_KEY`
+- `PR_NUMBER`
+- `REPO`
+- `BASE_SHA`
+- `HEAD_SHA`
 
-3. Verify `.gitignore` includes:
-   ```text
-   .env          ← your API key — must NEVER be pushed
-   .venv/
-   __pycache__/
-   *.pyc
-   .adk/
-   ```
+---
 
-⚠ NEVER push `.env` to GitHub. Your API key will be exposed publicly.
+## 📁 Repository Structure
 
-## Assets
-
-### Architecture Diagram
-![PR Gatekeeper — Agent Workflow](assets/architecture_diagram.png)
-
-Shows the full multi-agent workflow: START → ContextAgent → [SecurityAgent ‖ QualityAgent] → JoinNode → security_checkpoint → ReviewComposerAgent → DONE.  
-The MCP Server (7 tools) is connected to all four agents.
-
-### Cover Banner
-![PR Gatekeeper Cover Banner](assets/cover_page_banner.png)
+- `app/` — Main application logic: agents, config, MCP server, and runner.
+  - `agent.py` — Multi-agent workflow definitions and checkpoint routers.
+  - `cli_runner.py` — Headless entrypoint for CI/CD environments.
+  - `mcp_server.py` — Custom Model Context Protocol server exposing repository tools.
+- `tests/` — Suite of unit, integration, and evaluation tests.
+- `assets/` — Visual architectural and promotional banners.

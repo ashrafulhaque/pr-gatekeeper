@@ -91,4 +91,4 @@ Engineering teams can significantly reduce their manual security inspection load
 
 ### Project Links
 - **GitHub Repository**: [ashrafulhaque/pr-gatekeeper](https://github.com/ashrafulhaque/pr-gatekeeper)
-- **Demo Video**: [Link to YouTube demo video / walkthrough](https://github.com/ashrafulhaque/pr-gatekeeper) *(Please update with your final YouTube link)*
+- **Demo Video**: [Link to YouTube demo video / walkthrough](https://youtu.be/fWAmPgcECEc?si=qLJTPw3z2F-TzXR4)
